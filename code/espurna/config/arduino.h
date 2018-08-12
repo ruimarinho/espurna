@@ -18,7 +18,7 @@
 //#define ITEAD_SONOFF_TH
 //#define ITEAD_SONOFF_SV
 //#define ITEAD_SLAMPHER
-//#define ITEAD_S20
+//#define ITEAD_S2X
 //#define ITEAD_SONOFF_TOUCH
 //#define ITEAD_SONOFF_POW
 //#define ITEAD_SONOFF_POW_R2
