@@ -2034,9 +2034,23 @@ void _sensorLoad() {
 
     #if VL53L1X_SUPPORT
     {
+        #if (VL53L1X_INTER_MEASUREMENT_PERIOD <= (VL53L1X_MEASUREMENT_TIMING_BUDGET + 4))
+            #error "[VL53L1X] Intermeasurement period must be greater than the timing budget + 4ms"
+        #endif
+
+        #if (VL53L1X_MEASUREMENT_TIMING_BUDGET != 15 && \
+            VL53L1X_MEASUREMENT_TIMING_BUDGET != 20 && \
+            VL53L1X_MEASUREMENT_TIMING_BUDGET != 33 && \
+            VL53L1X_MEASUREMENT_TIMING_BUDGET != 50 && \
+            VL53L1X_MEASUREMENT_TIMING_BUDGET != 100 && \
+            VL53L1X_MEASUREMENT_TIMING_BUDGET != 200 && \
+            VL53L1X_MEASUREMENT_TIMING_BUDGET != 500)
+            #error "[VL53L1X] Timing budget is limited to one of [15, 20, 33, 50, 100, 200, 500]"
+        #endif
+
         VL53L1XSensor * sensor = new VL53L1XSensor();
-        sensor->setInterMeasurementPeriod(VL53L1X_INTER_MEASUREMENT_PERIOD);
         sensor->setDistanceMode(VL53L1X_DISTANCE_MODE);
+        sensor->setInterMeasurementPeriod(VL53L1X_INTER_MEASUREMENT_PERIOD);
         sensor->setMeasurementTimingBudget(VL53L1X_MEASUREMENT_TIMING_BUDGET);
         _sensors.push_back(sensor);
     }

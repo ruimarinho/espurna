@@ -1222,23 +1222,24 @@
 #endif
 
 #ifndef VL53L1X_DISTANCE_MODE
-#define VL53L1X_DISTANCE_MODE                        VL53L1X::Long // The distance mode of the sensor. Can be one of
-#endif                                                             // `VL53L1X::Short`, `VL53L1X::Medium`, or `VL53L1X::Long.
-                                                                   // Shorter distance modes are less affected by ambient light
-                                                                   // but have lower maximum ranges, especially in the dark.
+#define VL53L1X_DISTANCE_MODE                        2             // The distance mode of the sensor. Can be one of `0` (short)
+#endif                                                             // or `1` (long). Shorter distance modes are less affected by
+                                                                   // ambient light but have lower maximum ranges, especially in
+                                                                   // the dark.
 
 
 #ifndef VL53L1X_MEASUREMENT_TIMING_BUDGET
-#define VL53L1X_MEASUREMENT_TIMING_BUDGET            140000        // The time, in microseconds, allocated for a single
+#define VL53L1X_MEASUREMENT_TIMING_BUDGET            33            // The time, in milliseconds, allocated for a single
                                                                    // measurement. A longer timing budget allows for more
                                                                    // accurate at the cost of power. The minimum budget is
-                                                                   // 20 ms (20000 us) in short distance mode and 33 ms for
+                                                                   // 15 ms (15000 us) in short distance mode and 33 ms for
                                                                    // medium and long distance modes.
 #endif
 
 #ifndef VL53L1X_INTER_MEASUREMENT_PERIOD
 #define VL53L1X_INTER_MEASUREMENT_PERIOD             50            // Period, in milliseconds, determining how
-#endif                                                             // often the sensor takes a measurement.
+                                                                   // often the sensor takes a measurement. Should be at least
+#endif                                                             // as long the measurement timing budget.
 
 //------------------------------------------------------------------------------
 // MAX6675

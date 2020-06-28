@@ -8,7 +8,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <VL53L1X.h>
+#include "vl53l1x_class.h"
 
 #include "I2CSensor.h"
 
@@ -23,7 +23,7 @@ class VL53L1XSensor : public I2CSensor<> {
         VL53L1XSensor() {
             _count = 1;
             _sensor_id = SENSOR_VL53L1X_ID;
-            _vl53l1x = new VL53L1X();
+            _vl53l1x = new VL53L1X(&Wire, -1, -1);
         }
 
         ~VL53L1XSensor() {
@@ -32,17 +32,21 @@ class VL53L1XSensor : public I2CSensor<> {
 
         // ---------------------------------------------------------------------
 
-        void setDistanceMode(VL53L1X::DistanceMode mode) {
-          _vl53l1x->setDistanceMode(mode);
+        void setDistanceMode(uint8_t mode) {
+          if (_mode == mode) return;
+          _mode = mode;
+          _dirty = true;
         }
 
-        void setMeasurementTimingBudget(uint32_t budget_us) {
-          _vl53l1x->setMeasurementTimingBudget(budget_us);
+        void setMeasurementTimingBudget(uint32_t timing_budget) {
+          if (_timing_budget == timing_budget) return;
+          _timing_budget = timing_budget;
+          _dirty = true;
         }
 
-        void setInterMeasurementPeriod(unsigned int period) {
-          if (_inter_measurement_period == period) return;
-          _inter_measurement_period = period;
+        void setInterMeasurementPeriod(unsigned int inter_measurement_period) {
+          if (_inter_measurement_period == inter_measurement_period) return;
+          _inter_measurement_period = inter_measurement_period;
           _dirty = true;
         }
 
@@ -55,18 +59,17 @@ class VL53L1XSensor : public I2CSensor<> {
             return;
           }
 
-          // I2C auto-discover
-          unsigned char addresses[] = {0x29};
-          _address = _begin_i2c(_address, sizeof(addresses), addresses);
-          if (_address == 0) return;
-
-          _vl53l1x->setAddress(_address);
-
-          if (!_vl53l1x->init()) {
+          if (_vl53l1x->VL53L1X_SensorInit() != 0) {
+            #if SENSOR_DEBUG
+              DEBUG_MSG("[VL53L1X] Unable to initialize sensor\n");
+            #endif
             return;
-          };
+          }
 
-          _vl53l1x->startContinuous(_inter_measurement_period);
+          _vl53l1x->VL53L1X_SetDistanceMode(_mode);
+          _vl53l1x->VL53L1X_SetInterMeasurementInMs(_inter_measurement_period);
+          _vl53l1x->VL53L1X_SetTimingBudgetInMs(_timing_budget);
+          _vl53l1x->VL53L1X_StartRanging();
 
           _ready = true;
           _dirty = false;
@@ -92,11 +95,30 @@ class VL53L1XSensor : public I2CSensor<> {
 
         // Pre-read hook (usually to populate registers with up-to-date data)
         void pre() {
-            if (!_vl53l1x->dataReady()) {
-              return;
-            }
+          uint8_t dataReady;
+          uint8_t rangeStatus;
+          uint16_t distance;
 
-            _distance = (double) _vl53l1x->read(false) / 1000.00;
+          _vl53l1x->VL53L1X_CheckForDataReady(&dataReady);
+
+          if (!(bool)dataReady) {
+              return;
+          }
+
+          _vl53l1x->VL53L1X_GetRangeStatus(&rangeStatus);
+          _vl53l1x->VL53L1X_GetDistance(&distance);
+          _vl53l1x->VL53L1X_ClearInterrupt();
+
+          if (rangeStatus > 0) {
+            #if SENSOR_DEBUG
+              DEBUG_MSG("[VL53L1X] Range error %u\n", rangeStatus);
+            #endif
+            _error = SENSOR_ERROR_OUT_OF_RANGE;
+            return;
+          }
+
+          _distance = distance / 1000.00;
+          _error = SENSOR_ERROR_OK;
         }
 
         // Current value for slot # index
@@ -107,8 +129,10 @@ class VL53L1XSensor : public I2CSensor<> {
 
     protected:
 
-        VL53L1X * _vl53l1x = NULL;
-        unsigned int _inter_measurement_period;
+        VL53L1X *_vl53l1x = NULL;
+        uint8_t _mode;
+        uint16_t _inter_measurement_period;
+        uint16_t _timing_budget;
         double _distance = 0;
 
 };
