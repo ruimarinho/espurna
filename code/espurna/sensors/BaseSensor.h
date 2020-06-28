@@ -131,6 +131,8 @@ class BaseSensor {
                     return sensor::Unit::CountsPerMinute;
                 case MAGNITUDE_GEIGER_SIEVERT:
                     return sensor::Unit::MicrosievertPerHour;
+                case MAGNITUDE_PH:
+                    return sensor::Unit::Ph;
                 case MAGNITUDE_DISTANCE:
                     return sensor::Unit::Meter;
                 default:

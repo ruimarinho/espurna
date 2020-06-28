@@ -542,6 +542,8 @@ unsigned char _sensorUnitDecimals(sensor::Unit unit) {
             return 3;
         case sensor::Unit::UltravioletIndex:
             return 3;
+        case sensor::Unit::Ph:
+            return 1;
         case sensor::Unit::None:
         default:
             return 0;
@@ -732,6 +734,7 @@ String _magnitudeUnits(const sensor_magnitude_t& magnitude) {
         case sensor::Unit::Meter:
             result = F("m");
             break;
+        case sensor::Unit::Ph:
         case sensor::Unit::None:
         default:
             result = F("");
